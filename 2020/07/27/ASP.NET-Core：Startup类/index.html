@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"seventy-one.cn","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":330,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="ASP.NET Core 中的应用启动Startup 类配置服务和应用的请求管道。 Startup 类ASP.NET Core 应用使用 Startup 类，按照约定命名为 Startup。 Startup 类：  可选择性地包括 ConfigureServices 方法以配置应用的服务。 服务是一个提供应用功能的可重用组件。 在 ConfigureServices 中注册服务，并通过依赖关系注入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ASP.NET Core：Startup类">
+<meta property="og:url" content="http://seventy-one.cn/2020/07/27/ASP.NET-Core%EF%BC%9AStartup%E7%B1%BB/index.html">
+<meta property="og:site_name" content="柒">
+<meta property="og:description" content="ASP.NET Core 中的应用启动Startup 类配置服务和应用的请求管道。 Startup 类ASP.NET Core 应用使用 Startup 类，按照约定命名为 Startup。 Startup 类：  可选择性地包括 ConfigureServices 方法以配置应用的服务。 服务是一个提供应用功能的可重用组件。 在 ConfigureServices 中注册服务，并通过依赖关系注入">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-27T13:20:00.000Z">
+<meta property="article:modified_time" content="2020-07-27T13:52:53.886Z">
+<meta property="article:author" content="柒拾壹">
+<meta property="article:tag" content=".NET Core">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://seventy-one.cn/2020/07/27/ASP.NET-Core%EF%BC%9AStartup%E7%B1%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ASP.NET Core：Startup类 | 柒</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+<script type="text/javascript" src="/js/love.js"></script>
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">柒</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱生活爱自己</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">2</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">6</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://seventy-one.cn/2020/07/27/ASP.NET-Core%EF%BC%9AStartup%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="柒拾壹">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="柒">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ASP.NET Core：Startup类
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-07-27 21:20:00 / 修改时间：21:52:53" itemprop="dateCreated datePublished" datetime="2020-07-27T21:20:00+08:00">2020-07-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/NET-Core/" itemprop="url" rel="index"><span itemprop="name">.NET Core</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="ASP-NET-Core-中的应用启动"><a href="#ASP-NET-Core-中的应用启动" class="headerlink" title="ASP.NET Core 中的应用启动"></a>ASP.NET Core 中的应用启动</h1><p><code>Startup</code> 类配置服务和应用的请求管道。</p>
+<h2 id="Startup-类"><a href="#Startup-类" class="headerlink" title="Startup 类"></a>Startup 类</h2><p>ASP.NET Core 应用使用 <code>Startup</code> 类，按照约定命名为 <code>Startup</code>。 <code>Startup</code> 类：</p>
+<ul>
+<li>可选择性地包括 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configureservices" target="_blank" rel="noopener">ConfigureServices</a> 方法以配置应用的服务。 服务是一个提供应用功能的可重用组件。 在 <code>ConfigureServices</code> 中注册服务，并通过<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.0" target="_blank" rel="noopener">依赖关系注入 (DI)</a> 或 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.builder.iapplicationbuilder.applicationservices" target="_blank" rel="noopener">ApplicationServices</a> 在整个应用中使用服务。</li>
+<li>包括 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configure" target="_blank" rel="noopener">Configure</a> 方法以创建应用的请求处理管道。</li>
+</ul>
+<p>在应用启动时，ASP.NET Core 运行时会调用 <code>ConfigureServices</code> 和 <code>Configure</code>：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Startup</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ConfigureServices</span>(<span class="params">IServiceCollection services</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Configure</span>(<span class="params">IApplicationBuilder app, IWebHostEnvironment env</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在构建应用<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/?view=aspnetcore-3.0#host" target="_blank" rel="noopener">主机</a>时指定 <code>Startup</code> 类。 通常，通过在主机生成器上调用 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.webhostbuilderextensions.usestartup" target="_blank" rel="noopener">WebHostBuilderExtensions.UseStartup</a> 方法来指定 <code>Startup</code> 类：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="keyword">string</span>[] args</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        CreateHostBuilder(args).Build().Run();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> IHostBuilder <span class="title">CreateHostBuilder</span>(<span class="params"><span class="keyword">string</span>[] args</span>)</span> =&gt;</span><br><span class="line">        Host.CreateDefaultBuilder(args)</span><br><span class="line">            .ConfigureWebHostDefaults(webBuilder =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                webBuilder.UseStartup&lt;Startup&gt;();</span><br><span class="line">            &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主机提供 <code>Startup</code> 类构造函数可用的某些服务。 应用通过 <code>ConfigureServices</code> 添加其他服务。 主机和应用服务都可以在 <code>Configure</code> 和整个应用中使用。</p>
+<a id="more"></a>
+
+<h3 id="多启动"><a href="#多启动" class="headerlink" title="多启动"></a>多启动</h3><p>应用为不同的环境（例如，<code>StartupDevelopment</code>）单独定义 <code>Startup</code> 类时，相应的 <code>Startup</code> 类会在运行时被选中。 优先考虑名称后缀与当前环境相匹配的类。 如果应用在开发环境中运行并包含 <code>Startup</code> 类和 <code>StartupDevelopment</code> 类，则使用 <code>StartupDevelopment</code> 类。</p>
+<h2 id="ConfigureServices-方法"><a href="#ConfigureServices-方法" class="headerlink" title="ConfigureServices 方法"></a>ConfigureServices 方法</h2><p><a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configureservices" target="_blank" rel="noopener">ConfigureServices</a> 方法：</p>
+<ul>
+<li>可选。</li>
+<li>在 <code>Configure</code> 方法配置应用服务之前，由主机调用。</li>
+<li>其中按常规设置<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.0" target="_blank" rel="noopener">配置选项</a>。</li>
+</ul>
+<p>主机可能会在调用 <code>Startup</code> 方法之前配置某些服务。</p>
+<p>对于需要大量设置的功能，<a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.extensions.dependencyinjection.iservicecollection" target="_blank" rel="noopener">IServiceCollection</a> 上有 <code>Add{Service}</code> 扩展方法。 例如，<strong>Add</strong>DbContext、<strong>Add</strong>DefaultIdentity、<strong>Add</strong>EntityFrameworkStores 和 <strong>Add</strong>RazorPages：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Startup</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Startup</span>(<span class="params">IConfiguration configuration</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Configuration = configuration;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> IConfiguration Configuration &#123; <span class="keyword">get</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ConfigureServices</span>(<span class="params">IServiceCollection services</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line"></span><br><span class="line">        services.AddDbContext&lt;ApplicationDbContext&gt;(options =&gt;</span><br><span class="line">            options.UseSqlServer(</span><br><span class="line">                Configuration.GetConnectionString(<span class="string">"DefaultConnection"</span>)));</span><br><span class="line">        services.AddDefaultIdentity&lt;IdentityUser&gt;(</span><br><span class="line">            options =&gt; options.SignIn.RequireConfirmedAccount = <span class="literal">true</span>)</span><br><span class="line">            .AddEntityFrameworkStores&lt;ApplicationDbContext&gt;();</span><br><span class="line"></span><br><span class="line">        services.AddRazorPages();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>将服务添加到服务容器，使其在应用和 <code>Configure</code> 方法中可用。 服务通过<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.0" target="_blank" rel="noopener">依赖关系注入</a>或 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.builder.iapplicationbuilder.applicationservices" target="_blank" rel="noopener">ApplicationServices</a> 进行解析。</p>
+<h2 id="Configure-方法"><a href="#Configure-方法" class="headerlink" title="Configure 方法"></a>Configure 方法</h2><p><a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configure" target="_blank" rel="noopener">Configure</a> 方法用于指定应用响应 HTTP 请求的方式。 可通过将<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.0" target="_blank" rel="noopener">中间件</a>组件添加到 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.builder.iapplicationbuilder" target="_blank" rel="noopener">IApplicationBuilder</a> 实例来配置请求管道。</p>
+<p><code>Configure</code> 方法可使用 <code>IApplicationBuilder</code>，但未在服务容器中注册。 托管创建 <code>IApplicationBuilder</code> 并将其直接传递到 <code>Configure</code>。</p>
+<p><a href="https://docs.microsoft.com/zh-cn/dotnet/core/tools/dotnet-new" target="_blank" rel="noopener">ASP.NET Core 模板</a>配置的管道支持：</p>
+<ul>
+<li><a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/error-handling?view=aspnetcore-3.0#developer-exception-page" target="_blank" rel="noopener">开发人员异常页</a></li>
+<li><a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/error-handling?view=aspnetcore-3.0#exception-handler-page" target="_blank" rel="noopener">异常处理程序</a></li>
+<li><a href="https://docs.microsoft.com/zh-cn/aspnet/core/security/enforcing-ssl?view=aspnetcore-3.0#http-strict-transport-security-protocol-hsts" target="_blank" rel="noopener">HTTP 严格传输安全性 (HSTS)</a></li>
+<li><a href="https://docs.microsoft.com/zh-cn/aspnet/core/security/enforcing-ssl?view=aspnetcore-3.0" target="_blank" rel="noopener">HTTPS 重定向</a></li>
+<li><a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/static-files?view=aspnetcore-3.0" target="_blank" rel="noopener">静态文件</a></li>
+<li>ASP.NET Core <a href="https://docs.microsoft.com/zh-cn/aspnet/core/mvc/overview?view=aspnetcore-3.0" target="_blank" rel="noopener">MVC</a> 和 <a href="https://docs.microsoft.com/zh-cn/aspnet/core/razor-pages/?view=aspnetcore-3.0" target="_blank" rel="noopener">Razor Pages</a></li>
+</ul>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Startup</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Startup</span>(<span class="params">IConfiguration configuration</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Configuration = configuration;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> IConfiguration Configuration &#123; <span class="keyword">get</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ConfigureServices</span>(<span class="params">IServiceCollection services</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        services.AddRazorPages();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Configure</span>(<span class="params">IApplicationBuilder app, IWebHostEnvironment env</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">if</span> (env.IsDevelopment())</span><br><span class="line">        &#123;</span><br><span class="line">            app.UseDeveloperExceptionPage();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            app.UseExceptionHandler(<span class="string">"/Error"</span>);</span><br><span class="line">            app.UseHsts();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        app.UseHttpsRedirection();</span><br><span class="line">        app.UseStaticFiles();</span><br><span class="line"></span><br><span class="line">        app.UseRouting();</span><br><span class="line"></span><br><span class="line">        app.UseAuthorization();</span><br><span class="line"></span><br><span class="line">        app.UseEndpoints(endpoints =&gt;</span><br><span class="line">        &#123;</span><br><span class="line">            endpoints.MapRazorPages();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每个 <code>Use</code> 扩展方法将一个或多个中间件组件添加到请求管道。 例如，<a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.builder.staticfileextensions.usestaticfiles" target="_blank" rel="noopener">UseStaticFiles</a> 配置<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.0" target="_blank" rel="noopener">中间件</a>提供<a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/static-files?view=aspnetcore-3.0" target="_blank" rel="noopener">静态文件</a>。</p>
+<p>请求管道中的每个中间件组件负责调用管道中的下一个组件，或在适当情况下使链发生短路。</p>
+<p>可以在 <code>Configure</code> 方法签名中指定其他服务，如 <code>IWebHostEnvironment</code>、<code>ILoggerFactory</code> 或 <code>ConfigureServices</code> 中定义的任何内容。 如果这些服务可用，则会被注入。</p>
+<p>有关如何使用 <code>IApplicationBuilder</code> 和中间件处理顺序的详细信息，</p>
+<h2 id="在不启动的情况下配置服务"><a href="#在不启动的情况下配置服务" class="headerlink" title="在不启动的情况下配置服务"></a>在不启动的情况下配置服务</h2><p>若要配置服务和请求处理管道，而不使用 <code>Startup</code> 类，请在主机生成器上调用 <code>ConfigureServices</code> 和 <code>Configure</code> 便捷方法。 多次调用 <code>ConfigureServices</code> 将追加到另一个。 如果存在多个 <code>Configure</code> 方法调用，则使用最后一个 <code>Configure</code> 调用。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="keyword">string</span>[] args</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        CreateHostBuilder(args).Build().Run();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> IHostBuilder <span class="title">CreateHostBuilder</span>(<span class="params"><span class="keyword">string</span>[] args</span>)</span> =&gt;</span><br><span class="line">        Host.CreateDefaultBuilder(args)</span><br><span class="line">            .ConfigureAppConfiguration((hostingContext, config) =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">            &#125;)</span><br><span class="line">            .ConfigureWebHostDefaults(webBuilder =&gt;</span><br><span class="line">            &#123;</span><br><span class="line">                webBuilder.ConfigureServices(services =&gt;</span><br><span class="line">                &#123;</span><br><span class="line">                    services.AddControllersWithViews();</span><br><span class="line">                &#125;)</span><br><span class="line">                .Configure(app =&gt;</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">var</span> loggerFactory = app.ApplicationServices</span><br><span class="line">                        .GetRequiredService&lt;ILoggerFactory&gt;();</span><br><span class="line">                    <span class="keyword">var</span> logger = loggerFactory.CreateLogger&lt;Program&gt;();</span><br><span class="line">                    <span class="keyword">var</span> env = app.ApplicationServices.GetRequiredService&lt;IWebHostEnvironment&gt;();</span><br><span class="line">                    <span class="keyword">var</span> config = app.ApplicationServices.GetRequiredService&lt;IConfiguration&gt;();</span><br><span class="line"></span><br><span class="line">                    logger.LogInformation(<span class="string">"Logged in Configure"</span>);</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (env.IsDevelopment())</span><br><span class="line">                    &#123;</span><br><span class="line">                        app.UseDeveloperExceptionPage();</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">else</span></span><br><span class="line">                    &#123;</span><br><span class="line">                        app.UseExceptionHandler(<span class="string">"/Home/Error"</span>);</span><br><span class="line">                        app.UseHsts();</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">var</span> configValue = config[<span class="string">"MyConfigKey"</span>];</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用-Startup-筛选器扩展-Startup"><a href="#使用-Startup-筛选器扩展-Startup" class="headerlink" title="使用 Startup 筛选器扩展 Startup"></a>使用 Startup 筛选器扩展 Startup</h2><p>使用 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.istartupfilter" target="_blank" rel="noopener">IStartupFilter</a>：</p>
+<ul>
+<li>在应用的 <a href="https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/startup?view=aspnetcore-3.0#the-configure-method" target="_blank" rel="noopener">Configure</a> 中间件管道的开头或末尾配置中间件，而无需显式调用 <code>Use{Middleware}</code>。 <code>IStartupFilter</code> 由 ASP.NET Core 用于将默认值添加到管道的开头，而无需使应用作者显式注册默认中间件。 <code>IStartupFilter</code> 允许代表应用作者使用不同的组件调用 <code>Use{Middleware}</code>。</li>
+<li>创建 <code>Configure</code> 方法的管道。 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.istartupfilter.configure" target="_blank" rel="noopener">IStartupFilter.Configure</a> 可以将中间件设置为在库添加的中间件之前或之后运行。</li>
+</ul>
+<p><code>IStartupFilter</code> 实现 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configure" target="_blank" rel="noopener">Configure</a>，即接收并返回 <code>Action&lt;IApplicationBuilder&gt;</code>。 <a href="https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.builder.iapplicationbuilder" target="_blank" rel="noopener">IApplicationBuilder</a> 定义用于配置应用请求管道的类。</p>
+<p>未完待续….</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>柒拾壹
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://seventy-one.cn/2020/07/27/ASP.NET-Core%EF%BC%9AStartup%E7%B1%BB/" title="ASP.NET Core：Startup类">http://seventy-one.cn/2020/07/27/ASP.NET-Core：Startup类/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/NET-Core/" rel="tag"># .NET Core</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/27/ASP.NET%20Core%EF%BC%9A%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="prev" title="ASP.NET Core：基础">
+      <i class="fa fa-chevron-left"></i> ASP.NET Core：基础
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ASP-NET-Core-中的应用启动"><span class="nav-number">1.</span> <span class="nav-text">ASP.NET Core 中的应用启动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Startup-类"><span class="nav-number">1.1.</span> <span class="nav-text">Startup 类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多启动"><span class="nav-number">1.1.1.</span> <span class="nav-text">多启动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ConfigureServices-方法"><span class="nav-number">1.2.</span> <span class="nav-text">ConfigureServices 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configure-方法"><span class="nav-number">1.3.</span> <span class="nav-text">Configure 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在不启动的情况下配置服务"><span class="nav-number">1.4.</span> <span class="nav-text">在不启动的情况下配置服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-Startup-筛选器扩展-Startup"><span class="nav-number">1.5.</span> <span class="nav-text">使用 Startup 筛选器扩展 Startup</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="柒拾壹"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">柒拾壹</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wuyue1391" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wuyue1391" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wuyue1391@gmail.com" title="E-Mail → mailto:wuyue1391@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">柒拾壹</span>
+    <span class="post-meta-divider">|</span>
+  <a href="http://www.beian.miit.gov.cn/"  target="_blank">湘ICP备20011213号-1</a>
+</div>
+<div class="powered-by">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">17k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">15 分钟</span>
+   <span class="post-meta-divider">|</span>
+	<span>站点访问量：<span id="busuanzi_value_site_pv"></span>次</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"position":"right","width":200,"height":200},"mobile":{"show":false},"rect":"opacity:0.7","log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
